@@ -1,25 +1,20 @@
-# Getting Started
+# Integrating WebAssembly Functionality into the CAP Bookshop Demo
 
-Welcome to your new project.
+## Proof-of-Concept
 
-It contains these folders and files, following our recommended project layout:
+This repo is a proof-of-concept exercise in which the server-side part of a CAP application (the Bookshop demo) is supplemented with functionality from a WebAssembly module.
 
-File or Folder | Purpose
----------|----------
-`app/` | content for UI frontends goes here
-`db/` | your domain models and data go here
-`srv/` | your service models and code go here
-`package.json` | project metadata and configuration
-`readme.md` | this getting started guide
+The WASM module in use here is one I wrote that [calculates the SHA256 hash](https://github.com/ChrisWhealy/wasm_sha256) of some message.
+When an order is placed for a book, the SHA256 hash of book's description is calculated and printed to the console.
 
+Calculating the SHA256 hash of a description is clearly not functionality needed by the book ordering process &mdash; but that is not the point.
+The point is to discover how easy it would be to integrate WASM functionality into a CAP appliaction.
+And the preliminary result is: very easy!
 
-## Next Steps
+## TODO
 
-- Open a new terminal and run `cds watch` 
-- (in VS Code simply choose _**Terminal** > Run Task > cds watch_)
-- Start adding content, for example, a [db/schema.cds](db/schema.cds).
-
-
-## Learn More
-
-Learn more at https://cap.cloud.sap/docs/get-started/.
+* Incorporate values obtained from calling the WASM module into the CAP data model.
+   (At the moment, the value is simply written to the console.)
+* Display values derived from WASM on the UI
+* Allow for the possibility of including WASM functionality in the client.
+  (Currently, the WASM functionality runs only on the server-side).
