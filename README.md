@@ -18,3 +18,11 @@ And the preliminary result is: very easy!
 * Display values derived from WASM on the UI
 * Allow for the possibility of including WASM functionality in the client.
   (Currently, the WASM functionality runs only on the server-side).
+
+## Functional Overview
+
+* The binary file `sha256.wasm` has been added to the `/srv` directory
+* The `init()` function in `cat-service.js` has been extended to create an instance of WASM module
+* Each time the `SubmitOrder` event is raised:
+   * The selected book's description is written to shared memory (allowing for the possibility that this description might need more than a single memory page)
+   * The SHA256 has is calculated and written to the console
