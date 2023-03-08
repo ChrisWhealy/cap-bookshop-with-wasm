@@ -15,13 +15,13 @@ const books = Vue.createApp({
   }),
 
   methods: {
-    initWasm: async pathToWasm => {
-      let wasm = await startWasm(pathToWasm)
+    initWasm: async pathToWasmModule => {
+      let wasm = await startWasm(pathToWasmModule)
       wasmExports = wasm.wasmExports
       wasmMemory = wasm.wasmMemory
     },
 
-    search: ({ target: { value: v } }) => books.fetch(v && '&$search=' + v),
+    search: ({ target: { value: v } }) => books.fetch(v && `&$search=${v}`),
 
     fetch: async (etc = '') => {
       const { data } = await GET(`/ListOfBooks?$expand=genre,currency${etc}`)
