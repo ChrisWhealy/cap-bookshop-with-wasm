@@ -2,27 +2,25 @@
 
 ## Proof-of-Concept
 
-This repo is a proof-of-concept exercise in which the server-side part of a CAP application (the Bookshop demo) is supplemented with functionality from a WebAssembly module.
+This repo is a proof-of-concept exercise in which the client-side part of a CAP application (the Bookshop demo) is supplemented with functionality from a WebAssembly module.
 
-The WASM module in use here is one I wrote that [calculates the SHA256 hash](https://github.com/ChrisWhealy/wasm_sha256) of some message.
-When an order is placed for a book, the SHA256 hash of book's description is calculated and printed to the console.
+The WASM module used here is one I wrote that [calculates the SHA256 hash](https://github.com/ChrisWhealy/wasm_sha256) of some message.
+When an order is placed for a book, the SHA256 hash of book's description is calculated and displayed underneath the description.
 
-Calculating the SHA256 hash of a description is clearly not functionality needed by the book ordering process &mdash; but that is not the point.
-The point is to discover how easy it would be to integrate WASM functionality into a CAP appliaction.
+Calculating the SHA256 hash of a description is probably not functionality needed during the book ordering process &mdash; but that is not the point of this exercise.
+The point is to discover how easy it is to integrate WASM functionality into a CAP appliaction.
 And the preliminary result is: very easy!
 
 ## TODO
 
-* Incorporate values obtained from calling the WASM module into the CAP data model.
-   (At the moment, the value is simply written to the console.)
-* Display values derived from WASM on the UI
-* Allow for the possibility of including WASM functionality in the client.
-  (Currently, the WASM functionality runs only on the server-side).
+* Think of a more meaningful use case
+* Fix a possible memory leak
 
 ## Functional Overview
 
-* The binary file `sha256.wasm` has been added to the `/srv` directory
-* The `init()` function in `cat-service.js` has been extended to create an instance of WASM module
+* The binary file `sha256.wasm` has been added to the `/app/vue` directory
+* The Vue app has a new method `initWasm()` that creates an instance of WASM module and allocates a default amount of memory (2 64Kb memory pages)
 * Each time the `SubmitOrder` event is raised:
-   * The selected book's description is written to shared memory (allowing for the possibility that this description might need more than a single memory page)
-   * The SHA256 has is calculated and written to the console
+   * The selected book's description is written to shared memory (allowing for the possibility that this description might occupy more than a single memory page, in which the WASM memory allocation needs to grow)
+   * The SHA256 hash value is calculated and the value added as an attribute to the `book` object
+   * `{{ book.hash }}` is displayed in the browser below the book's description

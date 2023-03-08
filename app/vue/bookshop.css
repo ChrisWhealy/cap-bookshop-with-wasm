@@ -1,0 +1,22 @@
+.hovering tr:hover td {
+  color: cyan;
+  background: #123;
+  cursor: pointer;
+}
+
+.rating-stars {
+  color: teal
+}
+
+.succeeded {
+  color: teal
+}
+
+.failed {
+  color: red
+}
+
+.user {
+  text-align: end;
+  color: grey;
+}

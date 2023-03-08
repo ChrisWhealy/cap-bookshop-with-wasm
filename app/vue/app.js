@@ -1,7 +1,10 @@
 /* global Vue axios */ //> from vue.html
 const $ = sel => document.querySelector(sel)
-const GET = (url) => axios.get('/browse' + url)
-const POST = (cmd, data) => axios.post('/browse' + cmd, data)
+const GET = (url) => axios.get(`/browse${url}`)
+const POST = (cmd, data) => axios.post(`/browse${cmd}`, data)
+
+let wasmExports = null
+let wasmMemory = null
 
 const books = Vue.createApp({
   data: () => ({
@@ -12,6 +15,12 @@ const books = Vue.createApp({
   }),
 
   methods: {
+    initWasm: async pathToWasm => {
+      let wasm = await startWasm(pathToWasm)
+      wasmExports = wasm.wasmExports
+      wasmMemory = wasm.wasmMemory
+    },
+
     search: ({ target: { value: v } }) => books.fetch(v && '&$search=' + v),
 
     fetch: async (etc = '') => {
@@ -28,15 +37,27 @@ const books = Vue.createApp({
     },
 
     submitOrder: async () => {
-      // const { book, order } = books, quantity = parseInt(order.quantity) || 1 // REVISIT: Okra should be less strict
       const { book, order } = books, quantity = parseInt(order.quantity)
 
       try {
         const res = await POST(`/submitOrder`, { quantity, book: book.ID })
         book.stock = res.data.stock
         books.order = { quantity, succeeded: `Successfully ordered ${quantity} item(s).` }
+
+        // Write book description to shared memory and calculate hash
+        let msgBlockCount = populateWasmMemory(wasmMemory, book.descr)
+        let hashIdx32 = wasmExports.sha256_hash(msgBlockCount) >>> 2
+
+        // Convert binary hash to character string
+        let wasmMem32 = new Uint32Array(wasmMemory.buffer)
+        book.hash = wasmMem32.slice(hashIdx32, hashIdx32 + 8).reduce((acc, i32) => acc += i32AsHexStr(i32), "")
+
+        // console.log(`Description hash = ${book.hash}`)
       } catch (e) {
-        books.order = { quantity, failed: e.response.data.error ? e.response.data.error.message : e.response.data }
+        books.order = {
+          quantity,
+          failed: e.response.data.error ? e.response.data.error.message : e.response.data
+        }
       }
     },
 
@@ -62,6 +83,7 @@ const books = Vue.createApp({
 
 books.getUserInfo()
 books.fetch() // initially fill list of books
+books.initWasm('sha256.wasm')
 
 // hide user info on request
 document.addEventListener('keydown', evt => {

@@ -4,33 +4,9 @@
 <head>
   <title> Capire Books </title>
   <link rel="stylesheet" href="https://unpkg.com/primitive-ui/dist/css/main.css">
+  <link rel="stylesheet" href="bookshop.css">
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
-  <style>
-    .hovering tr:hover td {
-      color: cyan;
-      background: #123;
-      cursor: pointer;
-    }
-
-    .rating-stars {
-      color: teal
-    }
-
-    .succeeded {
-      color: teal
-    }
-
-    .failed {
-      color: red
-    }
-
-    .user {
-      text-align: end;
-      color: grey;
-    }
-
-  </style>
 </head>
 
 <body class="small-container" , style="margin-top: 70px;">
@@ -84,6 +60,7 @@
       </form>
       <h4> {{ book.title }} </h4>
       <p> {{ book.descr }} </p>
+      <p> {{ book.hash }} </p>
     </div>
     <div v-else>
       ( click on a row to see details... )
@@ -92,6 +69,7 @@
   </div>
 </body>
 
+<script src="wasm_utils.js"></script>
 <script src="app.js"></script>
 
 </html>
