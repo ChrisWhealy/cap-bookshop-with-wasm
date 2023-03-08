@@ -6,7 +6,7 @@ const END_OF_DATA = 0x80
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // Define chunk size, then calculate how many chunks of that size are needed
 const chunksOf = bytesPerChunk => qty => Math.floor(qty / bytesPerChunk) + (qty % bytesPerChunk > 0)
-const memPages = chunksOf(64 * 1024)
+const memPages = chunksOf(WASM_MEM_PAGE_SIZE)
 const msgBlocks = chunksOf(64)
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -15,8 +15,8 @@ const msgBlocks = chunksOf(64)
 const binToHexStr =
   (len, addPrefix) =>
     !!addPrefix
-      ? (val => `0x${val.toString(16).padStart(len >>> 3, "0")}`)
-      : (val => val.toString(16).padStart(len >>> 3, "0"))
+      ? (val => `0x${val.toString(16).padStart(len >>> 2, "0")}`)
+      : (val => val.toString(16).padStart(len >>> 2, "0"))
 const i32AsHexStr = binToHexStr(32, false)
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -37,11 +37,13 @@ const startWasm =
 // Write data to shared WASM memory growing it if necessary
 const populateWasmMemory =
   (wasmMemory, descr) => {
-    // If the data plus the extra end-of-data marker (1 byte) plus the 64-bit, unsigned integer holding the data's bit
-    // length (8 bytes) won't fit into one memory page, then grow WASM memory
-    if (descr.length + 9 > WASM_MEM_PAGE_SIZE) {
-      let memPageSize = memPages(descr.length + 9)
-      wasmMemory.grow(memPageSize)
+    // Data length = data.length + 1 (end-of-data marker) + 8 (data length as an 64-bit, unsigned integer)
+    // Memory available for data = Current memory allocation - 1 page allocated for SHA256 message digest etc
+    let neededBytes = descr.length + 9
+    let availableBytes = wasmMemory.buffer.byteLength - WASM_MEM_PAGE_SIZE
+
+    if (neededBytes > availableBytes) {
+      wasmMemory.grow(memPages(neededBytes - availableBytes))
     }
 
     let wasmMem8 = new Uint8Array(wasmMemory.buffer)
@@ -52,7 +54,7 @@ const populateWasmMemory =
     wasmMem8.set([END_OF_DATA], MSG_BLOCK_OFFSET + descr.length)
 
     // Write the bit length as an unsigned, big-endian i64 as the last 64 bytes of the last message block
-    let msgBlockCount = msgBlocks(descr.length + 9)
+    let msgBlockCount = msgBlocks(neededBytes)
     wasmMem64.setBigUint64(
       MSG_BLOCK_OFFSET + (msgBlockCount * 64) - 8,  // Byte offset
       BigInt(descr.length * 8),                     // i64 value
