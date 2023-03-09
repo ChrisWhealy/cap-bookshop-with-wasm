@@ -12,12 +12,9 @@ const msgBlocks = chunksOf(64)
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // Display a raw binary value of bit length `len` as a hexadecimal string
 // If the optional argument `addPrefix` is truthy, then the string will be prefixed with `0x`
-const binToHexStr =
-  (len, addPrefix) =>
-    !!addPrefix
-      ? (val => `0x${val.toString(16).padStart(len >>> 2, "0")}`)
-      : (val => val.toString(16).padStart(len >>> 2, "0"))
-const i32AsHexStr = binToHexStr(32, false)
+const binToHexStr = len => val => val.toString(16).padStart(len >>> 2, "0")
+const binToFmtHexStr = len => val => `0x${val.toString(16).padStart(len >>> 2, "0")}`
+const i32AsHexStr = binToHexStr(32)
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // Instantiate a WASM module with default memory allocation
