@@ -51,8 +51,6 @@ const books = Vue.createApp({
         // Convert binary hash to character string
         let wasmMem32 = new Uint32Array(wasmMemory.buffer)
         book.hash = wasmMem32.slice(hashIdx32, hashIdx32 + 8).reduce((acc, i32) => acc += i32AsHexStr(i32), "")
-
-        // console.log(`Description hash = ${book.hash}`)
       } catch (e) {
         books.order = {
           quantity,
