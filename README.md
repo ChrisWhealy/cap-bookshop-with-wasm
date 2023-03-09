@@ -13,8 +13,7 @@ And the preliminary result is: very easy!
 
 ## TODO
 
-* Think of a more meaningful use case
-* Fix a possible memory leak
+* Think of a more meaningful use case!
 
 ## Functional Overview
 
