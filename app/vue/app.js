@@ -81,7 +81,7 @@ const books = Vue.createApp({
 
 books.getUserInfo()
 books.fetch() // initially fill list of books
-books.initWasm('sha256.wasm')
+books.initWasm('sha256_opt.wasm')
 
 // hide user info on request
 document.addEventListener('keydown', evt => {
@@ -89,8 +89,7 @@ document.addEventListener('keydown', evt => {
 })
 
 const csrfToken = request => {
-  if (request.method === 'head' || request.method === 'get') {
-  } else {
+  if (request.method !== 'head' && request.method !== 'get') {
     if ('csrfToken' in document) {
       request.headers['x-csrf-token'] = document.csrfToken
     } else {

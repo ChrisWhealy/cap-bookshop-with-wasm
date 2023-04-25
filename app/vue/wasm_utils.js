@@ -4,16 +4,14 @@ const MSG_BLOCK_OFFSET = 0x010000
 const END_OF_DATA = 0x80
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-// Define chunk size, then calculate how many chunks of that size are needed
+// Define functions to calculate how many chunks of a given size are needed
 const chunksOf = bytesPerChunk => qty => Math.floor(qty / bytesPerChunk) + (qty % bytesPerChunk > 0)
 const memPages = chunksOf(WASM_MEM_PAGE_SIZE)
 const msgBlocks = chunksOf(64)
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-// Display a raw binary value of bit length `len` as a hexadecimal string
-// If the optional argument `addPrefix` is truthy, then the string will be prefixed with `0x`
+// Display a raw binary value of bit length `len` as a hexadecimal string, where `len` must be a multiple of 8
 const binToHexStr = len => val => val.toString(16).padStart(len >>> 2, "0")
-const binToFmtHexStr = len => val => `0x${val.toString(16).padStart(len >>> 2, "0")}`
 const i32AsHexStr = binToHexStr(32)
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -34,9 +32,7 @@ const startWasm =
 // Write data to shared WASM memory growing it if necessary
 const populateWasmMemory =
   (wasmMemory, descr) => {
-    // Data length = data.length + 1 (end-of-data marker) + 8 (data length as an 64-bit, unsigned integer)
-    // Memory available for data = Current memory allocation - 1 page allocated for SHA256 message digest etc
-    let neededBytes = descr.length + 9
+    let neededBytes = descr.length + 9 // (1 byte end-of-data marker + 8 byte data length as u64)
     let availableBytes = wasmMemory.buffer.byteLength - WASM_MEM_PAGE_SIZE
 
     if (neededBytes > availableBytes) {
@@ -50,7 +46,7 @@ const populateWasmMemory =
     wasmMem8.set(descr, MSG_BLOCK_OFFSET)
     wasmMem8.set([END_OF_DATA], MSG_BLOCK_OFFSET + descr.length)
 
-    // Write the bit length as an unsigned, big-endian i64 as the last 64 bytes of the last message block
+    // Write the bit length to the last 64 bytes of the last message block as a big-endian u64
     let msgBlockCount = msgBlocks(neededBytes)
     wasmMem64.setBigUint64(
       MSG_BLOCK_OFFSET + (msgBlockCount * 64) - 8,  // Byte offset
